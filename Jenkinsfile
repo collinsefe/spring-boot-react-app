@@ -57,7 +57,7 @@ EOF
                 }
             }
         }
-    }
+    
 
 
         stage('Test Application') {
