@@ -53,35 +53,50 @@ EOF
                 }
             }
         }
-    
-
 
         stage('Test Application') {
             steps {
                 echo "Testing if the application is running on EC2 instance..."
                 script {
-                    def response = ''
-                    def maxRetries = 5
-                    def delay = 5  
-        
-                    for (int i = 0; i < maxRetries; i++) {
-                        response = sh(script: "curl -s -o /dev/null -w '%{http_code}' -v -u greg:turnquist http://${EC2_HOST}:${PORT}/api/employees/3", returnStdout: true).trim()
-                        
-                        if (response == '200') {
-                            echo 'Application is running and responded with HTTP 200 OK!'
-                            break
-                        } else {
-                            echo "Attempt ${i+1}: Application test failed with HTTP ${response}. Retrying in ${delay} seconds..."
-                            sleep(delay)
-                        }
-                    }
-        
-                    if (response != '200') {
-                        error "Application test failed after ${maxRetries} attempts. Endpoint responded with HTTP ${response}"
+                    def response = sh(script: "curl -v -u greg:turnquist http://${EC2_HOST}:${PORT}/api/employees/3", returnStdout: true).trim()
+                    if (response.contains("HTTP/1.1 200 OK")) {
+                        echo 'Application is running and responded with HTTP 200 OK!'
+                    } else {
+                        error "Application test failed! Response: ${response}"
                     }
                 }
             }
         }
+
+    
+
+
+        // stage('Test Application') {
+        //     steps {
+        //         echo "Testing if the application is running on EC2 instance..."
+        //         script {
+        //             def response = ''
+        //             def maxRetries = 5
+        //             def delay = 5  
+        
+        //             for (int i = 0; i < maxRetries; i++) {
+        //                 response = sh(script: "curl -s -o /dev/null -w '%{http_code}' -v -u greg:turnquist http://${EC2_HOST}:${PORT}/api/employees/3", returnStdout: true).trim()
+                        
+        //                 if (response == '200') {
+        //                     echo 'Application is running and responded with HTTP 200 OK!'
+        //                     break
+        //                 } else {
+        //                     echo "Attempt ${i+1}: Application test failed with HTTP ${response}. Retrying in ${delay} seconds..."
+        //                     sleep(delay)
+        //                 }
+        //             }
+        
+        //             if (response != '200') {
+        //                 error "Application test failed after ${maxRetries} attempts. Endpoint responded with HTTP ${response}"
+        //             }
+        //         }
+        //     }
+        // }
     }
 
 
