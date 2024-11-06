@@ -24,13 +24,13 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 script {
-                    sshagent(credentials: [35.176.196.120]) {
+                    sshagent(credentials: [EC2_KEY]) {
                         sh """
                         scp -o StrictHostKeyChecking=no target/*.jar ${EC2_USER}@${EC2_HOST}:/home/${EC2_USER}/${APP_DIR}/app.jar
                         """
                     }
                     
-                    sshagent(credentials: [35.176.196.120]) {
+                    sshagent(credentials: [EC2_KEY]) {
                         sh """
                         ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << EOF
                             pkill -f 'java -jar' || true
