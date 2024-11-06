@@ -5,7 +5,7 @@ pipeline {
         AWS_CREDENTIALS = 'aws-credentials'
         EC2_USER = 'ec2-user'
         EC2_HOST = '172.31.29.1290'
-        EC2_KEY = 'ssh-ec2-user' 
+        EC2_KEY = '35.176.196.120' 
         APP_DIR = 'spring-boot-app'
         PORT = 8082
     }
