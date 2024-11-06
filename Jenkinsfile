@@ -8,6 +8,8 @@ pipeline {
         EC2_KEY = 'collinsefe'
         APP_DIR = 'spring-boot-app'
         PORT = 8081
+        S3_BUCKET_NAME = 'cap-gem-artifact-bucket-06112024'
+        JAR_FILE = 'app.jar'
     }
 
     stages {
