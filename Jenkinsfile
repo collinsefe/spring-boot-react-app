@@ -2,100 +2,63 @@ pipeline {
     agent any
 
     environment {
-        AWS_CREDENTIALS = 'aws-credentials' 
-        AWS_ACCOUNT_ID = '684361860346' 
-        AWS_REGION = 'eu-west-2'
-        ECR_REPO_NAME = 'cap-gem-app-demo'
-        DOCKER_IMAGE = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}"
-        DOCKER_TAG = 'demo'
-        ECS_CLUSTER_NAME = 'app-cluster-demo'
-        ECS_SERVICE_NAME = 'app-service-demo'
-        ECS_TASK_DEFINITION = 'app-task-family-demo'
-        APP_ENDPOINT = "http://app-alb-demo-1274756266.eu-west-2.elb.amazonaws.com"
+        AWS_CREDENTIALS = 'aws-credentials'
+        EC2_USER = 'ec2-user'
+        EC2_HOST = '35.176.196.120'
+        EC2_KEY = 'collinsefe'
+        APP_DIR = 'spring-boot-app'
+        PORT = 8082
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git url: 'https://github.com/collinsefe/spring-boot-react-example.git'
+                git url: 'https://gitlab.com/cloud-devops-assignments/spring-boot-react-example.git'
             }
         }
 
         stage('Build Application') {
             steps {
                 echo 'Building the Maven application...'
-                sh 'mvn clean install'
+                sh "'${MAVEN_HOME}/bin/mvn' clean install"
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                echo 'Building Docker image...'
-                sh "sudo docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} . || exit 1"
-            }
-        }
-
-        stage('Push Docker Image to ECR') {
-            steps {
-                echo 'Logging in to Amazon ECR and pushing the image...'
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${AWS_CREDENTIALS}"]]) {
-                    sh "aws ecr get-login-password --region ${AWS_REGION} | sudo docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-                }
-                sh "sudo docker push ${DOCKER_IMAGE}:${DOCKER_TAG} || exit 1"
-            }
-        }
-
-        stage('Register ECS Task Definition') {
+        stage('Deploy to EC2') {
             steps {
                 script {
-                    echo 'Registering ECS Task Definition...'
-                    sh """
-                    aws ecs register-task-definition \
-                      --family ${ECS_TASK_DEFINITION} \
-                      --network-mode awsvpc \
-                      --requires-compatibilities FARGATE \
-                      --cpu "256" \
-                      --memory "512" \
-                      --execution-role-arn arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole \
-                      --container-definitions '[{
-                        "name": "${ECS_TASK_DEFINITION}",
-                        "image": "${DOCKER_IMAGE}:${DOCKER_TAG}",
-                        "essential": true,
-                        "portMappings": [{"containerPort": 80, "hostPort": 0}],
-                        "logConfiguration": {
-                          "logDriver": "awslogs",
-                          "options": {
-                            "awslogs-group": "/ecs/${ECS_SERVICE_NAME}",
-                            "awslogs-region": "${AWS_REGION}",
-                            "awslogs-stream-prefix": "ecs"
-                          }
-                        }
-                      }]' || exit 1
-                    """
+                    // Archive the built JAR file and transfer to EC2
+                    sshagent(credentials: [EC2_KEY]) {
+                        sh """
+                        scp -o StrictHostKeyChecking=no target/*.jar ${EC2_USER}@${EC2_HOST}:/home/${EC2_USER}/${APP_DIR}/app.jar
+                        """
+                    }
+                    
+                    // Connect to the EC2 instance and run the JAR file
+                    sshagent(credentials: [EC2_KEY]) {
+                        sh """
+                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << EOF
+                            # Stop any existing instance of the application
+                            pkill -f 'java -jar' || true
+                            
+                            # Start the new instance of the application in detached mode
+                            nohup java -jar /home/${EC2_USER}/${APP_DIR}/app.jar --server.port=${PORT} > /home/${EC2_USER}/${APP_DIR}/application.log 2>&1 &
+                            
+                            # Confirm the application started
+                            sleep 10
+                            echo 'Application deployed and started on EC2!'
+                        EOF
+                        """
+                    }
                 }
             }
         }
 
-        stage('Update ECS Service') {
-            steps {
-                script {
-                    echo 'Updating ECS Service...'
-                    sh """
-                    aws ecs update-service \
-                      --cluster ${ECS_CLUSTER_NAME} \
-                      --service ${ECS_SERVICE_NAME} \
-                      --force-new-deployment || exit 1
-                    """
-                }
-            }
-        }
-        
         stage('Test Application') {
             steps {
-                echo "Testing if the application is running on ${APP_ENDPOINT}..."
-                sleep(20)
+                echo "Testing if the application is running on EC2 instance..."
                 script {
-                    def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' ${APP_ENDPOINT}", returnStdout: true).trim()
+                    def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://${EC2_HOST}:${PORT}/api/employees/3", returnStdout: true).trim()
                     if (response == '200') {
                         echo 'Application is running and responded with HTTP 200 OK!'
                     } else {
@@ -108,10 +71,7 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline completed. Checking ECS services...'
-            withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${AWS_CREDENTIALS}"]]) {
-                sh "aws ecs list-services --cluster ${ECS_CLUSTER_NAME} || true"
-            }
+            echo 'Pipeline completed.'
         }
     }
 }
