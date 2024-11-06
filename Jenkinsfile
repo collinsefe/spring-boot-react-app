@@ -13,11 +13,6 @@ pipeline {
     }
 
     stages {
-        stage('Clone Repository') {
-            steps {
-                git url: 'https://gitlab.com/cloud-devops-assignments/spring-boot-react-example.git'
-            }
-        }
 
         stage('Build Application') {
             steps {
@@ -29,23 +24,19 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 script {
-                    sshagent(credentials: [${EC2_KEY}]) {
+                    sshagent(credentials: [35.176.196.120]) {
                         sh """
                         scp -o StrictHostKeyChecking=no target/*.jar ${EC2_USER}@${EC2_HOST}:/home/${EC2_USER}/${APP_DIR}/app.jar
                         """
                     }
                     
-                    // Connect to the EC2 instance and run the JAR file
-                    sshagent(credentials: [${EC2_KEY}]) {
+                    sshagent(credentials: [35.176.196.120]) {
                         sh """
                         ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << EOF
-                            # Stop any existing instance of the application
                             pkill -f 'java -jar' || true
                             
-                            # Start the new instance of the application in detached mode
                             nohup java -jar /home/${EC2_USER}/${APP_DIR}/app.jar --server.port=${PORT} > /home/${EC2_USER}/${APP_DIR}/application.log 2>&1 &
                             
-                            # Confirm the application started
                             sleep 10
                             echo 'Application deployed and started on EC2!'
                         EOF
