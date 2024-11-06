@@ -22,16 +22,16 @@ pipeline {
             steps {
                 script {
                     // Archive the built JAR file and transfer to EC2
-                    // sshagent(credentials: [EC2_KEY]) {
+                    sshagent(credentials: [EC2_KEY]) {
                         sh """
                         // scp -o StrictHostKeyChecking=no target/*.jar ${EC2_USER}@${EC2_HOST}:/home/${EC2_USER}/${APP_DIR}/app.jar
                         scp -i collinsefe.pem target/*.jar ${EC2_USER}@${EC2_HOST}:/home/${EC2_USER}/${APP_DIR}/app.jar
 
                         """
-                    // }
+                    }
                     
                     // Connect to the EC2 instance and run the JAR file
-                    // sshagent(credentials: [EC2_KEY]) {
+                    sshagent(credentials: [EC2_KEY]) {
                         sh """
                         ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << EOF
                             pkill -f 'java -jar' || true
@@ -40,7 +40,7 @@ pipeline {
                             echo 'Application deployed and started on EC2!'
                         EOF
                         """
-                    // }
+                    }
                 }
             }
         }
