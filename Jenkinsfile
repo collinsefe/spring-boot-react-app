@@ -51,12 +51,13 @@ pipeline {
                             nohup java -jar /home/${EC2_USER}/${APP_DIR}/${JAR_FILE} --server.port=${PORT} > /home/${EC2_USER}/${APP_DIR}/application.log 2>&1 &
                             
                             echo 'Application deployed and started on EC2!'
-                        EOF
+EOF
                         """
                     }
                 }
             }
         }
+    }
 
 
         stage('Test Application') {
