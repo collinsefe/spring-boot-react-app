@@ -5,14 +5,13 @@ pipeline {
         AWS_CREDENTIALS = 'aws-credentials' 
         AWS_ACCOUNT_ID = '684361860346' 
         AWS_REGION = 'eu-west-2'
-        ECR_REPO_NAME = 'cap-gem-app-dev'
+        ECR_REPO_NAME = 'cap-gem-app-demo'
         DOCKER_IMAGE = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}"
-        DOCKER_TAG = 'latest'
-        PORT = 8081
+        DOCKER_TAG = 'demo'
         ECS_CLUSTER_NAME = 'app-cluster-demo'
         ECS_SERVICE_NAME = 'app-service-demo'
         ECS_TASK_DEFINITION = 'app-task-family-demo'
-        APP_ENDPOINT = "http://demo-app-alb-173668491.eu-west-2.elb.amazonaws.com"
+        APP_ENDPOINT = "http://app-alb-demo-1274756266.eu-west-2.elb.amazonaws.com"
     }
 
     stages {
