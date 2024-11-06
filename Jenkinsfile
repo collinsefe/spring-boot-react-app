@@ -22,14 +22,13 @@ pipeline {
         stage('Build Application') {
             steps {
                 echo 'Building the Maven application...'
-                sh "'${MAVEN_HOME}/bin/mvn' clean install"
+                sh "mvn clean install"
             }
         }
 
         stage('Deploy to EC2') {
             steps {
                 script {
-                    // Archive the built JAR file and transfer to EC2
                     sshagent(credentials: [${EC2_KEY}]) {
                         sh """
                         scp -o StrictHostKeyChecking=no target/*.jar ${EC2_USER}@${EC2_HOST}:/home/${EC2_USER}/${APP_DIR}/app.jar
