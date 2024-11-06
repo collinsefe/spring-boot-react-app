@@ -55,27 +55,15 @@ EOF
         }
 
         stage('Test Application') {
-            steps {
+               steps {
                 echo "Testing if the application is running on EC2 instance..."
                 script {
-                    def response = ''
-                    def maxRetries = 3
-                    def delay = 20
-        
-                    for (int i = 0; i < maxRetries; i++) {
-                        response = sh(script: "curl -v -u greg:turnquist 3.10.169.33:8081/api/employees/3", returnStdout: true).trim()
-                        
-                        if (response.contains('"status":200')) {
-                            echo 'Application is running and responded with HTTP 200 OK!'
-                            break
-                        } else {
-                            echo "Attempt ${i+1}: Application test failed with response: ${response}. Retrying in ${delay} seconds..."
-                            sleep(delay)
-                        }
-                    }
-        
-                    if (!response.contains('"status":200')) {
-                        error "Application test failed after ${maxRetries} attempts. Endpoint responded with ${response}"
+                    def response = sh(script: "curl -s -u -v greg:turnquist http://${EC2_HOST}:${PORT}/api/employees/3", returnStdout: true).trim()
+                    echo "Response: ${response}"
+                    if (response.contains('"status":200')) {
+                        echo 'Application is running and responded with HTTP 200 OK!'
+                    } else {
+                        error "Application test failed! Endpoint responded with ${response}"
                     }
                 }
             }
