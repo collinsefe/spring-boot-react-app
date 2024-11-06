@@ -15,12 +15,6 @@ pipeline {
     }
 
     stages {
-        stage('Clone Repository') {
-            steps {
-                git url: 'https://github.com/collinsefe/spring-boot-react-example.git'
-            }
-        }
-
         stage('Build Application') {
             steps {
                 echo 'Building the Maven application...'
