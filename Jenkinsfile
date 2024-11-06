@@ -54,23 +54,6 @@ EOF
             }
         }
 
-
-        // stage('Test Application') {
-        //     steps {
-        //         echo "Testing if the application is running on EC2 instance..."
-        //         script {
-        //             def response = sh(script: "curl -s -u greg:turnquist http://${EC2_HOST}:${PORT}/api/employees/3", returnStdout: true).trim()
-        //             echo "Response: ${response}"
-        //             if (response.contains('"status":200')) {
-        //                 echo 'Application is running and responded with HTTP 200 OK!'
-        //             } else {
-        //                 error "Application test failed! Endpoint responded with ${response}"
-        //             }
-        //         }
-        //     }
-        // }
-    
-
         stage('Test Application') {
             steps {
                 echo "Testing if the application is running on EC2 instance..."
@@ -80,25 +63,24 @@ EOF
                     def delay = 20
         
                     for (int i = 0; i < maxRetries; i++) {
-                        response = sh(script: "curl -s -o /dev/null -w -v '%{http_code}' http://localhost:${PORT}", returnStdout: true).trim()
+                        response = sh(script: "curl -s -u greg:turnquist http://${EC2_HOST}:${PORT}/api/employees/3", returnStdout: true).trim()
                         
-                        if (response == '200') {
+                        if (response.contains('"status":200')) {
                             echo 'Application is running and responded with HTTP 200 OK!'
                             break
                         } else {
-                            echo "Attempt ${i+1}: Application test failed with HTTP ${response}. Retrying in ${delay} seconds..."
+                            echo "Attempt ${i+1}: Application test failed with response: ${response}. Retrying in ${delay} seconds..."
                             sleep(delay)
                         }
                     }
         
-                    if (response != '200') {
-                        error "Application test failed after ${maxRetries} attempts. Endpoint responded with HTTP ${response}"
+                    if (!response.contains('"status":200')) {
+                        error "Application test failed after ${maxRetries} attempts. Endpoint responded with ${response}"
                     }
                 }
             }
         }
     }
-
 
     post {
         always {
