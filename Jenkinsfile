@@ -43,7 +43,7 @@ pipeline {
                 script {
                     sshagent(credentials: [EC2_KEY]) {
                         sh """
-                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << EOF
+                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} <<EOF
                             # Stop any running instance of the application
                             pkill -f 'java -jar' || true
                             
@@ -57,6 +57,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Test Application') {
             steps {
