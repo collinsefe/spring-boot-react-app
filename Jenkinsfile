@@ -83,7 +83,7 @@ EOF
                     def delay = 20
         
                     for (int i = 0; i < maxRetries; i++) {
-                        response = sh(script: "curl -s -o -v /dev/null -w '%{http_code}' http://localhost:${PORT}", returnStdout: true).trim()
+                        response = sh(script: "curl -s -o /dev/null -w -v '%{http_code}' http://localhost:${PORT}", returnStdout: true).trim()
                         
                         if (response == '200') {
                             echo 'Application is running and responded with HTTP 200 OK!'
