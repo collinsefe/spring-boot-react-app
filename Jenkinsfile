@@ -66,7 +66,7 @@ EOF
                 script {
                     def response = ''
                     def maxRetries = 5
-                    def delay = 5  
+                    def delay = 10  
         
                     for (int i = 0; i < maxRetries; i++) {
                         response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://${EC2_HOST}:${PORT}/api/employees/3", returnStdout: true).trim()
