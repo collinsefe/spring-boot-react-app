@@ -15,7 +15,7 @@ pipeline {
         stage('Build Application') {
             steps {
                 echo 'Building the Maven application...'
-                sh "'${MAVEN_HOME}/bin/mvn' clean install"
+                sh "mvn clean install"
             }
         }
 
