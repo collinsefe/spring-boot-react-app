@@ -74,17 +74,16 @@ EOF
     // }
     
 
-
         stage('Test Application') {
             steps {
                 echo "Testing if the application is running on EC2 instance..."
                 script {
                     def response = ''
                     def maxRetries = 3
-                    def delay = 20 
+                    def delay = 20
         
                     for (int i = 0; i < maxRetries; i++) {
-                        response = sh(script: "curl -s -v -o /dev/null -w '%{http_code}' http://${EC2_HOST}:${PORT}, returnStdout: true).trim()
+                        response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://${EC2_HOST}:${PORT}/api/employees/3", returnStdout: true).trim()
                         
                         if (response == '200') {
                             echo 'Application is running and responded with HTTP 200 OK!'
