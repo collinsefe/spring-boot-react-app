@@ -7,7 +7,7 @@ pipeline {
         EC2_KEY = '35.176.196.120' 
         APP_DIR = 'spring-boot-app'
         PORT = 8082
-        S3_BUCKET_NAME = 'your-s3-bucket-name'
+        S3_BUCKET_NAME = 'cap-gem-artifact-bucket-06112024'
         JAR_FILE = 'app.jar'
     }
     stages {
