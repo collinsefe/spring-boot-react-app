@@ -59,9 +59,9 @@ EOF
             steps {
                 echo "Testing if the application is running on EC2 instance..."
                 script {
-                    def response = sh(script: "curl -v -u greg:turnquist http://${EC2_HOST}:${PORT}/api/employees/3", returnStdout: true).trim()
+                    def response = sh(script: "curl -s -u greg:turnquist http://${EC2_HOST}:${PORT}/api/employees/3", returnStdout: true).trim()
                     echo "Response: ${response}"
-                    if (response.contains("200 OK")) {
+                    if (response.contains('"status":200')) {
                         echo 'Application is running and responded with HTTP 200 OK!'
                     } else {
                         error "Application test failed! Endpoint responded with ${response}"
@@ -69,7 +69,6 @@ EOF
                 }
             }
         }
-
     
 
         stage('Test Application') {
